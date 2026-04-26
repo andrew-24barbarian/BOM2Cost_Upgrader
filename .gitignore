@@ -216,3 +216,10 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+.DS_Store
+CLAUDE.md
+*.csv
+*.xlsx
+*.xls
+*.xlsm
