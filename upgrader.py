@@ -179,13 +179,10 @@ def upgrade(xlsx_path: str | Path, xlsm_path: str | Path, output_path: str | Pat
             all_updates[sheet][cell] = value
 
     _op1_总表(wb_src, add)
-    _op2_bom_q_column(wb_src, wb_dst_cached, add)
-    _op3_bom_z_s(wb_src, add)
-    _op4_例外(wb_src, add)
-    _op5_材料费(wb_src, wb_dst_cached, add)
-    _op6_加工费(wb_src, wb_dst_cached, add)
-    _op7_x部品(wb_src, add)
-    _op8_bom_from_row20(wb_src, add)
+    _op2_bom_z_s(wb_src, add)
+    _op3_材料费(wb_src, wb_dst_cached, add)
+    _op4_加工费(wb_src, wb_dst_cached, add)
+    _op5_x部品(wb_src, add)
 
     wb_src.close()
     wb_dst_cached.close()
@@ -226,7 +223,7 @@ def upgrade(xlsx_path: str | Path, xlsm_path: str | Path, output_path: str | Pat
     return output_path
 
 
-# --- 8 个操作 ---
+# --- 5 个操作 ---
 
 def _op1_总表(wb_src, add):
     ws = wb_src["总表"]
@@ -237,24 +234,7 @@ def _op1_总表(wb_src, add):
                 add("总表", f"{_num_to_col(col)}{row}", val)
 
 
-def _op2_bom_q_column(wb_src, wb_dst_cached, add):
-    ws_src = wb_src["BOM分解"]
-    ws_dst = wb_dst_cached["BOM分解"]
-    src_map: dict[str, object] = {}
-    for row in range(12, ws_src.max_row + 1):
-        r_val = ws_src.cell(row, 18).value
-        q_val = ws_src.cell(row, 17).value
-        if r_val is not None:
-            src_map[str(r_val)] = q_val
-    for row in range(12, ws_dst.max_row + 1):
-        r_val = ws_dst.cell(row, 18).value
-        if r_val is not None and str(r_val) in src_map:
-            q_val = src_map[str(r_val)]
-            if q_val is not None:
-                add("BOM分解", f"Q{row}", q_val)
-
-
-def _op3_bom_z_s(wb_src, add):
+def _op2_bom_z_s(wb_src, add):
     ws = wb_src["BOM分解"]
     for row in range(4, 7):
         val = ws.cell(row, 26).value
@@ -265,16 +245,7 @@ def _op3_bom_z_s(wb_src, add):
         add("BOM分解", "S9", val)
 
 
-def _op4_例外(wb_src, add):
-    ws = wb_src["例外"]
-    for row in range(1, ws.max_row + 1):
-        for col in range(4, 6):
-            val = ws.cell(row, col).value
-            if val is not None:
-                add("例外", f"{_num_to_col(col)}{row}", val)
-
-
-def _op5_材料费(wb_src, wb_dst_cached, add):
+def _op3_材料费(wb_src, wb_dst_cached, add):
     ws_src = wb_src["材料费"]
     ws_dst = wb_dst_cached["材料费"]
     copy_cols = [7, 9, 28, 32, 47, 50, 53, 56, 59]
@@ -297,7 +268,7 @@ def _op5_材料费(wb_src, wb_dst_cached, add):
                 add("材料费", f"{_num_to_col(col)}{dst_row}", val)
 
 
-def _op6_加工费(wb_src, wb_dst_cached, add):
+def _op4_加工费(wb_src, wb_dst_cached, add):
     ws_src = wb_src["加工费"]
     ws_dst = wb_dst_cached["加工费"]
     dst_index: dict[str, int] = {}
@@ -319,19 +290,10 @@ def _op6_加工费(wb_src, wb_dst_cached, add):
                 add("加工费", f"{_num_to_col(col)}{dst_row}", val)
 
 
-def _op7_x部品(wb_src, add):
+def _op5_x部品(wb_src, add):
     ws = wb_src["X部品及外购件"]
     for row in range(2, ws.max_row + 1):
         for col in range(1, ws.max_column + 1):
             val = ws.cell(row, col).value
             if val is not None:
                 add("X部品及外购件", f"{_num_to_col(col)}{row}", val)
-
-
-def _op8_bom_from_row20(wb_src, add):
-    ws = wb_src["BOM分解"]
-    for row in range(20, ws.max_row + 1):
-        for col in range(1, ws.max_column + 1):
-            val = ws.cell(row, col).value
-            if val is not None:
-                add("BOM分解", f"{_num_to_col(col)}{row}", val)
